@@ -59,6 +59,6 @@
     <string name="dberror" msgid="6922426026866330853">"Desculpe, não foi possível definir o alarme."</string>
     <string name="analog_gadget" msgid="1670505720837152766">"Relógio analógico"</string>
     <string name="settings" msgid="5849739030579520686">"Configurações"</string>
-    <string name="alarm_in_silent_mode_title" msgid="3892612644543516705">"Alarme no modo silencioso"</string>
+    <string name="alarm_in_silent_mode_title" msgid="3892612644543516705">"Modo silencioso"</string>
     <string name="alarm_in_silent_mode_summary" msgid="6042500263899922832">"Tocar o alarme mesmo quando o telefone estiver no modo silencioso"</string>
 </resources>
