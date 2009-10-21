@@ -219,6 +219,7 @@ public class AlarmClock extends Activity implements OnItemClickListener {
             public void run() {
                 updateLayout();
                 inflateClock();
+                setClockVisibility(mPrefs.getBoolean(PREF_SHOW_CLOCK, true));
             }
         });
     }
