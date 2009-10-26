@@ -205,6 +205,9 @@
     <!-- The summary of the side button setting. -->
     <string name="volume_button_setting_summary">Set the desired behavior of the side buttons when pressed during an alarm</string>
 
+    <!-- Title of the ringtone setting. -->
+    <string name="default_ringtone_setting_title">Set default ringtone</string>
+
     <!-- Entries listed in the setting for the side-button action. -->
     <string-array name="volume_button_setting_entries">
       <item>None</item>
