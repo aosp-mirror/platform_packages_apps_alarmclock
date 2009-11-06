@@ -85,6 +85,8 @@
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"已将闹钟设置为从现在起 <xliff:g id="TIME">%s</xliff:g>后再提醒。选中可以取消。"</string>
     <string name="volume_button_setting_title" msgid="1892885285888644234">"侧按钮行为"</string>
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"根据需要设置闹钟响时按侧按钮所期望出现的行为"</string>
+    <!-- no translation found for default_ringtone_setting_title (4549726190682964245) -->
+    <skip />
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"无"</item>
     <item msgid="7111908302622811168">"暂停"</item>

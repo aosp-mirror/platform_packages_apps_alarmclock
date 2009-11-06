@@ -85,6 +85,8 @@
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"<xliff:g id="TIME">%s</xliff:g> 후로 알람이 설정되었습니다. 취소하려면 선택하세요."</string>
     <string name="volume_button_setting_title" msgid="1892885285888644234">"사이드 버튼 동작"</string>
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"알람이 울리는 동안 사이드 버튼을 눌렀을 때의 동작 설정"</string>
+    <!-- no translation found for default_ringtone_setting_title (4549726190682964245) -->
+    <skip />
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"없음"</item>
     <item msgid="7111908302622811168">"다시 울림"</item>

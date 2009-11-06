@@ -85,6 +85,8 @@
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"Alarmen er indstillet til <xliff:g id="TIME">%s</xliff:g>. Vælg for at annullere."</string>
     <string name="volume_button_setting_title" msgid="1892885285888644234">"Sideknaps adfærd"</string>
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"Indstil ønsket adfærd for sideknappen, når der trykkes på den under en alarm"</string>
+    <!-- no translation found for default_ringtone_setting_title (4549726190682964245) -->
+    <skip />
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"Ingen"</item>
     <item msgid="7111908302622811168">"Slumretilstand"</item>
