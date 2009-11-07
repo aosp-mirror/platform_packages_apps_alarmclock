@@ -35,14 +35,14 @@
     <string name="alarm_alert_snooze_text" msgid="1774416052207651584">"Slumre"</string>
     <string name="alarm_alert_snooze_set" msgid="656470966696912087">"Slumrer i <xliff:g id="MINUTES">%d</xliff:g> minutter."</string>
   <string-array name="alarm_set">
-    <item msgid="5163476010406761625">"Denne alarmen er innstilt på under ett minutt fra nå."</item>
-    <item msgid="7110525731259629055">"Denne alarmen er innstilt på <xliff:g id="DAYS">%1$s</xliff:g> fra nå."</item>
-    <item msgid="7003982794086186185">"Denne alarmen er innstilt på <xliff:g id="HOURS">%2$s</xliff:g>  fra nå."</item>
-    <item msgid="7311021123230077742">"Denne alarmen er innstilt på <xliff:g id="DAYS">%1$s</xliff:g> og <xliff:g id="HOURS">%2$s</xliff:g> fra nå."</item>
-    <item msgid="8431715191823114872">"Denne alarmen er innstilt på <xliff:g id="MINUTES">%3$s</xliff:g>  fra nå."</item>
-    <item msgid="3244151088673185428">"Denne alarmen er innstilt på <xliff:g id="DAYS">%1$s</xliff:g> og <xliff:g id="MINUTES">%3$s</xliff:g> fra nå."</item>
-    <item msgid="3663661342600168814">"Denne alarmen er innstilt på  <xliff:g id="HOURS">%2$s</xliff:g> og <xliff:g id="MINUTES">%3$s</xliff:g> fra nå."</item>
-    <item msgid="7779544127785487304">"Denne alarmen er innstilt på <xliff:g id="DAYS">%1$s</xliff:g>, <xliff:g id="HOURS">%2$s</xliff:g> og <xliff:g id="MINUTES">%3$s</xliff:g> fra nå."</item>
+    <item msgid="5163476010406761625">"Alarmen ringer om mindre enn ett minutt."</item>
+    <item msgid="7110525731259629055">"Alarmen ringer om <xliff:g id="DAYS">%1$s</xliff:g>."</item>
+    <item msgid="7003982794086186185">"Alarmen ringer om <xliff:g id="HOURS">%2$s</xliff:g>."</item>
+    <item msgid="7311021123230077742">"Alarmen ringer om <xliff:g id="DAYS">%1$s</xliff:g> og <xliff:g id="HOURS">%2$s</xliff:g>."</item>
+    <item msgid="8431715191823114872">"Alarmen ringer om <xliff:g id="MINUTES">%3$s</xliff:g>."</item>
+    <item msgid="3244151088673185428">"Alarmen ringer om <xliff:g id="DAYS">%1$s</xliff:g> og <xliff:g id="MINUTES">%3$s</xliff:g>."</item>
+    <item msgid="3663661342600168814">"Alarmen ringer om <xliff:g id="HOURS">%2$s</xliff:g> og <xliff:g id="MINUTES">%3$s</xliff:g>."</item>
+    <item msgid="7779544127785487304">"Alarmen ringer om <xliff:g id="DAYS">%1$s</xliff:g>, <xliff:g id="HOURS">%2$s</xliff:g> og <xliff:g id="MINUTES">%3$s</xliff:g>."</item>
   </string-array>
     <string name="day" msgid="7984755014526510295">"1 dag"</string>
     <string name="days" msgid="2070509222727852210">"<xliff:g id="DAYS">%s</xliff:g> dager"</string>
@@ -85,6 +85,8 @@
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"Alarmen er innstilt på <xliff:g id="TIME">%s</xliff:g>. Velg for å avbryte."</string>
     <string name="volume_button_setting_title" msgid="1892885285888644234">"Sideknappfunksjon"</string>
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"Angi hvilken funksjon du vil at sideknappene skal ha når de trykkes på under en alarm"</string>
+    <!-- no translation found for default_ringtone_setting_title (4549726190682964245) -->
+    <skip />
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"Ingen"</item>
     <item msgid="7111908302622811168">"Slumre"</item>
