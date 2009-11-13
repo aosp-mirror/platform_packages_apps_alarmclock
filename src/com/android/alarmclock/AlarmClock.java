@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -34,7 +35,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -46,7 +51,7 @@ import java.text.DateFormatSymbols;
 /**
  * AlarmClock application.
  */
-public class AlarmClock extends Activity {
+public class AlarmClock extends Activity implements OnItemClickListener {
 
     final static String PREFERENCES = "AlarmClock";
     final static String PREF_CLOCK_FACE = "face";
@@ -63,8 +68,6 @@ public class AlarmClock extends Activity {
     private LayoutInflater mFactory;
     private ViewGroup mClockLayout;
     private View mClock = null;
-    private MenuItem mAddAlarmItem;
-    private MenuItem mToggleClockItem;
     private ListView mAlarmsList;
     private Cursor mCursor;
 
@@ -104,58 +107,36 @@ public class AlarmClock extends Activity {
         }
 
         public void bindView(View view, Context context, Cursor cursor) {
-            final int id = cursor.getInt(Alarms.AlarmColumns.ALARM_ID_INDEX);
-            final int hour = cursor.getInt(Alarms.AlarmColumns.ALARM_HOUR_INDEX);
-            final int minutes = cursor.getInt(Alarms.AlarmColumns.ALARM_MINUTES_INDEX);
-            final Alarms.DaysOfWeek daysOfWeek = new Alarms.DaysOfWeek(
-                    cursor.getInt(Alarms.AlarmColumns.ALARM_DAYS_OF_WEEK_INDEX));
-            final boolean enabled = cursor.getInt(Alarms.AlarmColumns.ALARM_ENABLED_INDEX) == 1;
-            final String label =
-                    cursor.getString(Alarms.AlarmColumns.ALARM_MESSAGE_INDEX);
+            final Alarm alarm = new Alarm(cursor);
 
             CheckBox onButton = (CheckBox)view.findViewById(R.id.alarmButton);
-            onButton.setChecked(enabled);
+            onButton.setChecked(alarm.enabled);
             onButton.setOnClickListener(new OnClickListener() {
                     public void onClick(View v) {
                         boolean isChecked = ((CheckBox) v).isChecked();
-                        Alarms.enableAlarm(AlarmClock.this, id, isChecked);
+                        Alarms.enableAlarm(AlarmClock.this, alarm.id,
+                            isChecked);
                         if (isChecked) {
-                            SetAlarm.popAlarmSetToast(
-                                    AlarmClock.this, hour, minutes, daysOfWeek);
+                            SetAlarm.popAlarmSetToast(AlarmClock.this,
+                                alarm.hour, alarm.minutes, alarm.daysOfWeek);
                         }
                     }
             });
 
-            DigitalClock digitalClock = (DigitalClock)view.findViewById(R.id.digitalClock);
-            if (Log.LOGV) Log.v("bindView " + cursor.getPosition() + " " + id + " " + hour +
-                                ":" + minutes + " " + daysOfWeek.toString(context, true) + " dc " + digitalClock);
-
-            digitalClock.setOnClickListener(new OnClickListener() {
-                    public void onClick(View v) {
-                        if (true) {
-                            Intent intent = new Intent(AlarmClock.this, SetAlarm.class);
-                            intent.putExtra(Alarms.ID, id);
-                            startActivity(intent);
-                        } else {
-                            // TESTING: immediately pop alarm
-                            Intent fireAlarm = new Intent(AlarmClock.this, AlarmAlert.class);
-                            fireAlarm.putExtra(Alarms.ID, id);
-                            fireAlarm.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(fireAlarm);
-                        }
-                    }
-                });
+            DigitalClock digitalClock =
+                    (DigitalClock) view.findViewById(R.id.digitalClock);
 
             // set the alarm text
             final Calendar c = Calendar.getInstance();
-            c.set(Calendar.HOUR_OF_DAY, hour);
-            c.set(Calendar.MINUTE, minutes);
+            c.set(Calendar.HOUR_OF_DAY, alarm.hour);
+            c.set(Calendar.MINUTE, alarm.minutes);
             digitalClock.updateTime(c);
 
             // Set the repeat text or leave it blank if it does not repeat.
-            TextView daysOfWeekView = (TextView) digitalClock.findViewById(R.id.daysOfWeek);
+            TextView daysOfWeekView =
+                    (TextView) digitalClock.findViewById(R.id.daysOfWeek);
             final String daysOfWeekStr =
-                    daysOfWeek.toString(AlarmClock.this, false);
+                    alarm.daysOfWeek.toString(AlarmClock.this, false);
             if (daysOfWeekStr != null && daysOfWeekStr.length() != 0) {
                 daysOfWeekView.setText(daysOfWeekStr);
                 daysOfWeekView.setVisibility(View.VISIBLE);
@@ -166,39 +147,52 @@ public class AlarmClock extends Activity {
             // Display the label
             TextView labelView =
                     (TextView) digitalClock.findViewById(R.id.label);
-            if (label != null && label.length() != 0) {
-                labelView.setText(label);
+            if (alarm.label != null && alarm.label.length() != 0) {
+                labelView.setText(alarm.label);
+                labelView.setVisibility(View.VISIBLE);
             } else {
-                labelView.setText(R.string.default_label);
+                labelView.setVisibility(View.GONE);
             }
-
-            // Build context menu
-            digitalClock.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-                    public void onCreateContextMenu(ContextMenu menu, View view,
-                                                    ContextMenuInfo menuInfo) {
-                        menu.setHeaderTitle(Alarms.formatTime(AlarmClock.this, c));
-                        MenuItem deleteAlarmItem = menu.add(0, id, 0, R.string.delete_alarm);
-                    }
-                });
         }
     };
 
     @Override
     public boolean onContextItemSelected(final MenuItem item) {
-        // Confirm that the alarm will be deleted.
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.delete_alarm))
-                .setMessage(getString(R.string.delete_alarm_confirm))
-                .setPositiveButton(android.R.string.ok,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface d, int w) {
-                                Alarms.deleteAlarm(AlarmClock.this,
-                                        item.getItemId());
-                            }
-                        })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-        return true;
+        final AdapterContextMenuInfo info =
+                (AdapterContextMenuInfo) item.getMenuInfo();
+        final int id = (int) info.id;
+        switch (item.getItemId()) {
+            case R.id.delete_alarm:
+                // Confirm that the alarm will be deleted.
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.delete_alarm))
+                        .setMessage(getString(R.string.delete_alarm_confirm))
+                        .setPositiveButton(android.R.string.ok,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface d,
+                                            int w) {
+                                        Alarms.deleteAlarm(AlarmClock.this, id);
+                                    }
+                                })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+                return true;
+
+            case R.id.enable_alarm:
+                final Cursor c = (Cursor) mAlarmsList.getAdapter()
+                        .getItem(info.position);
+                final Alarm alarm = new Alarm(c);
+                Alarms.enableAlarm(this, alarm.id, !alarm.enabled);
+                if (!alarm.enabled) {
+                    SetAlarm.popAlarmSetToast(this, alarm.hour, alarm.minutes,
+                            alarm.daysOfWeek);
+                }
+                return true;
+
+            default:
+                break;
+        }
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -209,48 +203,38 @@ public class AlarmClock extends Activity {
         mAm = ampm[0];
         mPm = ampm[1];
 
-        // sanity check -- no database, no clock
-        if (getContentResolver() == null) {
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.error))
-                    .setMessage(getString(R.string.dberror))
-                    .setPositiveButton(
-                            android.R.string.ok,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    finish();
-                                }
-                            })
-                    .setOnCancelListener(
-                            new DialogInterface.OnCancelListener() {
-                                public void onCancel(DialogInterface dialog) {
-                                    finish();
-                                }})
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .create().show();
-            return;
-        }
-
-        setContentView(R.layout.alarm_clock);
         mFactory = LayoutInflater.from(this);
         mPrefs = getSharedPreferences(PREFERENCES, 0);
-
         mCursor = Alarms.getAlarmsCursor(getContentResolver());
+
+        updateLayout();
+        setClockVisibility(mPrefs.getBoolean(PREF_SHOW_CLOCK, true));
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updateLayout();
+        inflateClock();
+    }
+
+    private void updateLayout() {
+        setContentView(R.layout.alarm_clock);
         mAlarmsList = (ListView) findViewById(R.id.alarms_list);
         mAlarmsList.setAdapter(new AlarmTimeAdapter(this, mCursor));
         mAlarmsList.setVerticalScrollBarEnabled(true);
-        mAlarmsList.setItemsCanFocus(true);
+        mAlarmsList.setOnItemClickListener(this);
+        mAlarmsList.setOnCreateContextMenuListener(this);
 
         mClockLayout = (ViewGroup) findViewById(R.id.clock_layout);
         mClockLayout.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    final Intent intent = new Intent(AlarmClock.this, ClockPicker.class);
+                    final Intent intent =
+                            new Intent(AlarmClock.this, ClockPicker.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                 }
             });
-
-        setClockVisibility(mPrefs.getBoolean(PREF_SHOW_CLOCK, true));
     }
 
     @Override
@@ -259,10 +243,11 @@ public class AlarmClock extends Activity {
 
         int face = mPrefs.getInt(PREF_CLOCK_FACE, 0);
         if (mFace != face) {
-            if (face < 0 || face >= AlarmClock.CLOCKS.length)
+            if (face < 0 || face >= AlarmClock.CLOCKS.length) {
                 mFace = 0;
-            else
+            } else {
                 mFace = face;
+            }
             inflateClock();
         }
     }
@@ -301,6 +286,45 @@ public class AlarmClock extends Activity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view,
+            ContextMenuInfo menuInfo) {
+        // Inflate the menu from xml.
+        getMenuInflater().inflate(R.menu.context_menu, menu);
+
+        // Use the current item to create a custom view for the header.
+        final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        final Cursor c =
+                (Cursor) mAlarmsList.getAdapter().getItem((int) info.position);
+        final Alarm alarm = new Alarm(c);
+
+        // Construct the Calendar to compute the time.
+        final Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, alarm.hour);
+        cal.set(Calendar.MINUTE, alarm.minutes);
+        final String time = Alarms.formatTime(this, cal);
+
+        // Inflate the custom view and set each TextView's text.
+        final View v = mFactory.inflate(R.layout.context_menu_header, null);
+        TextView textView = (TextView) v.findViewById(R.id.header_time);
+        textView.setText(time);
+        textView = (TextView) v.findViewById(R.id.header_label);
+        textView.setText(alarm.label);
+
+        // Set the custom view on the menu.
+        menu.setHeaderView(v);
+        // Change the text to "disable" if the alarm is already enabled.
+        if (alarm.enabled) {
+            menu.findItem(R.id.enable_alarm).setTitle(R.string.disable_alarm);
+        }
+    }
+
+    public void onItemClick(AdapterView parent, View v, int pos, long id) {
+        Intent intent = new Intent(this, SetAlarm.class);
+        intent.putExtra(Alarms.ALARM_ID, (int) id);
+        startActivity(intent);
+    }
+
     /**
      * Only allow user to add a new alarm if there are fewer than
      * MAX_ALARM_COUNT
@@ -327,7 +351,7 @@ public class AlarmClock extends Activity {
                     Log.v("In AlarmClock, new alarm id = " + newId);
                 }
                 Intent intent = new Intent(this, SetAlarm.class);
-                intent.putExtra(Alarms.ID, newId);
+                intent.putExtra(Alarms.ALARM_ID, newId);
                 startActivity(intent);
                 return true;
 
