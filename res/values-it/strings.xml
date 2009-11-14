@@ -56,7 +56,7 @@
     <string name="clock_instructions" msgid="3118560284915857690">"Seleziona un orologio."</string>
     <string name="analog_gadget" msgid="1670505720837152766">"Orologio analogico"</string>
     <string name="settings" msgid="5849739030579520686">"Impostazioni"</string>
-    <string name="alarm_in_silent_mode_title" msgid="3892612644543516705">"Allarme in mod. silenziosa"</string>
+    <string name="alarm_in_silent_mode_title" msgid="3892612644543516705">"Allarme in mod. silenz."</string>
     <string name="alarm_in_silent_mode_summary" msgid="6042500263899922832">"Riproduci allarme anche con telefono in modalità silenziosa"</string>
     <string name="snooze_duration_title" msgid="1471249885139952670">"Durata sospensione"</string>
   <string-array name="snooze_duration_entries">
@@ -83,8 +83,8 @@
     <string name="alarm_notify_text" msgid="4146350965933990093">"Seleziona per sospendere o eliminare questo allarme."</string>
     <string name="alarm_notify_snooze_label" msgid="5404083762646377829">"<xliff:g id="LABEL">%s</xliff:g> (sospeso)"</string>
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"L\'allarme sarà attivato alle <xliff:g id="TIME">%s</xliff:g>. Seleziona per annullare."</string>
-    <string name="volume_button_setting_title" msgid="1892885285888644234">"Comportamento pulsante laterale"</string>
-    <string name="volume_button_setting_summary" msgid="1594641247799573198">"Imposta il comportamento desiderato dei pulsanti laterali quando vengono premuti durante un allarme"</string>
+    <string name="volume_button_setting_title" msgid="1892885285888644234">"Comp. pulsante laterale"</string>
+    <string name="volume_button_setting_summary" msgid="1594641247799573198">"Imposta il comport. dei puls. laterali quando vengono premuti durante un allarme"</string>
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"Nessuno"</item>
     <item msgid="7111908302622811168">"Sospendi"</item>
