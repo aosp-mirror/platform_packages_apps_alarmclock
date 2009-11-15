@@ -16,47 +16,45 @@
 
 package com.android.alarmclock;
 
-import android.content.ContentResolver;
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnErrorListener;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.Vibrator;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 /**
- * Manages alarms and vibe.  Singleton, so it can be initiated in
- * AlarmReceiver and shut down in the AlarmAlert activity
+ * Manages alarms and vibe. Runs as a service so that it can continue to play
+ * if another activity overrides the AlarmAlert dialog.
  */
-class AlarmKlaxon implements Alarms.AlarmSettings {
-
-    interface KillerCallback {
-        public void onKilled();
-    }
+public class AlarmKlaxon extends Service {
 
     /** Play alarm up to 10 minutes before silencing */
-    final static int ALARM_TIMEOUT_SECONDS = 10 * 60;
+    private static final int ALARM_TIMEOUT_SECONDS = 10 * 60;
 
     private static final long[] sVibratePattern = new long[] { 500, 500 };
 
-    private int mAlarmId;
-    private String mAlert;
-    private Alarms.DaysOfWeek mDaysOfWeek;
-    private boolean mVibrate;
     private boolean mPlaying = false;
     private Vibrator mVibrator;
     private MediaPlayer mMediaPlayer;
-    private KillerCallback mKillerCallback;
+    private Alarm mCurrentAlarm;
+    private long mStartTime;
+    private TelephonyManager mTelephonyManager;
+    private int mInitialCallState;
 
     // Internal messages
     private static final int KILLER = 1000;
-    private static final int PLAY   = 1001;
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -64,103 +62,167 @@ class AlarmKlaxon implements Alarms.AlarmSettings {
                     if (Log.LOGV) {
                         Log.v("*********** Alarm killer triggered ***********");
                     }
-                    if (mKillerCallback != null) {
-                        mKillerCallback.onKilled();
-                    }
-                    break;
-                case PLAY:
-                    play((Context) msg.obj, msg.arg1);
+                    sendKillBroadcast((Alarm) msg.obj);
+                    stopSelf();
                     break;
             }
         }
     };
 
-    AlarmKlaxon() {
+    private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
+        @Override
+        public void onCallStateChanged(int state, String ignored) {
+            // The user might already be in a call when the alarm fires. When
+            // we register onCallStateChanged, we get the initial in-call state
+            // which kills the alarm. Check against the initial call state so
+            // we don't kill the alarm during a call.
+            if (state != TelephonyManager.CALL_STATE_IDLE
+                    && state != mInitialCallState) {
+                sendKillBroadcast(mCurrentAlarm);
+                stopSelf();
+            }
+        }
+    };
+
+    @Override
+    public void onCreate() {
         mVibrator = new Vibrator();
+        // Listen for incoming calls to kill the alarm.
+        mTelephonyManager =
+                (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        mTelephonyManager.listen(
+                mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        AlarmAlertWakeLock.acquireCpuWakeLock(this);
     }
 
-    public void reportAlarm(
-            int idx, boolean enabled, int hour, int minutes,
-            Alarms.DaysOfWeek daysOfWeek, boolean vibrate, String message,
-            String alert) {
-        if (Log.LOGV) Log.v("AlarmKlaxon.reportAlarm: " + idx + " " + hour +
-                            " " + minutes + " dow " + daysOfWeek);
-        mAlert = alert;
-        mDaysOfWeek = daysOfWeek;
-        mVibrate = vibrate;
+    @Override
+    public void onDestroy() {
+        stop();
+        // Stop listening for incoming calls.
+        mTelephonyManager.listen(mPhoneStateListener, 0);
+        AlarmAlertWakeLock.releaseCpuLock();
     }
 
-    public void postPlay(final Context context, final int alarmId) {
-        mHandler.sendMessage(mHandler.obtainMessage(PLAY, alarmId, 0, context));
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // No intent, tell the system not to restart us.
+        if (intent == null) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        final Alarm alarm = intent.getParcelableExtra(
+                Alarms.ALARM_INTENT_EXTRA);
+
+        if (alarm == null) {
+            Log.v("AlarmKlaxon failed to parse the alarm from the intent");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        if (mCurrentAlarm != null) {
+            sendKillBroadcast(mCurrentAlarm);
+        }
+
+        play(alarm);
+        mCurrentAlarm = alarm;
+        // Record the initial call state here so that the new alarm has the
+        // newest state.
+        mInitialCallState = mTelephonyManager.getCallState();
+
+        return START_STICKY;
+    }
+
+    private void sendKillBroadcast(Alarm alarm) {
+        long millis = System.currentTimeMillis() - mStartTime;
+        int minutes = (int) Math.round(millis / 60000.0);
+        Intent alarmKilled = new Intent(Alarms.ALARM_KILLED);
+        alarmKilled.putExtra(Alarms.ALARM_INTENT_EXTRA, alarm);
+        alarmKilled.putExtra(Alarms.ALARM_KILLED_TIMEOUT, minutes);
+        sendBroadcast(alarmKilled);
     }
 
     // Volume suggested by media team for in-call alarms.
     private static final float IN_CALL_VOLUME = 0.125f;
 
-    private void play(Context context, int alarmId) {
-        ContentResolver contentResolver = context.getContentResolver();
+    private void play(Alarm alarm) {
+        // stop() checks to see if we are already playing.
+        stop();
 
-        if (mPlaying) stop(context, false);
+        if (Log.LOGV) {
+            Log.v("AlarmKlaxon.play() " + alarm.id + " alert " + alarm.alert);
+        }
 
-        mAlarmId = alarmId;
-
-        /* this will call reportAlarm() callback */
-        Alarms.getAlarm(contentResolver, this, mAlarmId);
-
-        if (Log.LOGV) Log.v("AlarmKlaxon.play() " + mAlarmId + " alert " + mAlert);
-
-        // TODO: Reuse mMediaPlayer instead of creating a new one and/or use
-        // RingtoneManager.
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setOnErrorListener(new OnErrorListener() {
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e("Error occurred while playing audio.");
-                mp.stop();
-                mp.release();
-                mMediaPlayer = null;
-                return true;
+        if (!alarm.silent) {
+            Uri alert = alarm.alert;
+            // Fall back on the default alarm if the database does not have an
+            // alarm stored.
+            if (alert == null) {
+                alert = RingtoneManager.getDefaultUri(
+                        RingtoneManager.TYPE_ALARM);
+                if (Log.LOGV) {
+                    Log.v("Using default alarm: " + alert.toString());
+                }
             }
-        });
 
-        try {
-            TelephonyManager tm = (TelephonyManager) context.getSystemService(
-                    Context.TELEPHONY_SERVICE);
-            // Check if we are in a call. If we are, use the in-call alarm
-            // resource at a low volume to not disrupt the call.
-            if (tm.getCallState() != TelephonyManager.CALL_STATE_IDLE) {
-                Log.v("Using the in-call alarm");
-                mMediaPlayer.setVolume(IN_CALL_VOLUME, IN_CALL_VOLUME);
-                setDataSourceFromResource(context.getResources(),
-                        mMediaPlayer, R.raw.in_call_alarm);
-            } else {
-                mMediaPlayer.setDataSource(context, Uri.parse(mAlert));
-            }
-            startAlarm(mMediaPlayer);
-        } catch (Exception ex) {
-            Log.v("Using the fallback ringtone");
-            // The alert may be on the sd card which could be busy right now.
-            // Use the fallback ringtone.
+            // TODO: Reuse mMediaPlayer instead of creating a new one and/or use
+            // RingtoneManager.
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setOnErrorListener(new OnErrorListener() {
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    Log.e("Error occurred while playing audio.");
+                    mp.stop();
+                    mp.release();
+                    mMediaPlayer = null;
+                    return true;
+                }
+            });
+
             try {
-                // Must reset the media player to clear the error state.
-                mMediaPlayer.reset();
-                setDataSourceFromResource(context.getResources(), mMediaPlayer,
-                        com.android.internal.R.raw.fallbackring);
+                // Check if we are in a call. If we are, use the in-call alarm
+                // resource at a low volume to not disrupt the call.
+                if (mTelephonyManager.getCallState()
+                        != TelephonyManager.CALL_STATE_IDLE) {
+                    Log.v("Using the in-call alarm");
+                    mMediaPlayer.setVolume(IN_CALL_VOLUME, IN_CALL_VOLUME);
+                    setDataSourceFromResource(getResources(), mMediaPlayer,
+                            R.raw.in_call_alarm);
+                } else {
+                    mMediaPlayer.setDataSource(this, alert);
+                }
                 startAlarm(mMediaPlayer);
-            } catch (Exception ex2) {
-                // At this point we just don't play anything.
-                Log.e("Failed to play fallback ringtone", ex2);
+            } catch (Exception ex) {
+                Log.v("Using the fallback ringtone");
+                // The alert may be on the sd card which could be busy right
+                // now. Use the fallback ringtone.
+                try {
+                    // Must reset the media player to clear the error state.
+                    mMediaPlayer.reset();
+                    setDataSourceFromResource(getResources(), mMediaPlayer,
+                            com.android.internal.R.raw.fallbackring);
+                    startAlarm(mMediaPlayer);
+                } catch (Exception ex2) {
+                    // At this point we just don't play anything.
+                    Log.e("Failed to play fallback ringtone", ex2);
+                }
             }
         }
 
         /* Start the vibrator after everything is ok with the media player */
-        if (mVibrate) {
+        if (alarm.vibrate) {
             mVibrator.vibrate(sVibratePattern, 0);
         } else {
             mVibrator.cancel();
         }
 
-        enableKiller();
+        enableKiller(alarm);
         mPlaying = true;
+        mStartTime = System.currentTimeMillis();
     }
 
     // Do the common stuff when starting the alarm.
@@ -187,8 +249,8 @@ class AlarmKlaxon implements Alarms.AlarmSettings {
      * Stops alarm audio and disables alarm if it not snoozed and not
      * repeating
      */
-    public void stop(Context context, boolean snoozed) {
-        if (Log.LOGV) Log.v("AlarmKlaxon.stop() " + mAlarmId);
+    public void stop() {
+        if (Log.LOGV) Log.v("AlarmKlaxon.stop()");
         if (mPlaying) {
             mPlaying = false;
 
@@ -201,21 +263,8 @@ class AlarmKlaxon implements Alarms.AlarmSettings {
 
             // Stop vibrator
             mVibrator.cancel();
-
-            /* disable alarm only if it is not set to repeat */
-            if (!snoozed && ((mDaysOfWeek == null || !mDaysOfWeek.isRepeatSet()))) {
-                Alarms.enableAlarm(context, mAlarmId, false);
-            }
         }
         disableKiller();
-    }
-
-    /**
-     * This callback called when alarm killer times out unattended
-     * alarm
-     */
-    public void setKillerCallback(KillerCallback killerCallback) {
-        mKillerCallback = killerCallback;
     }
 
     /**
@@ -225,8 +274,8 @@ class AlarmKlaxon implements Alarms.AlarmSettings {
      * This just cancels the audio, but leaves the notification
      * popped, so the user will know that the alarm tripped.
      */
-    private void enableKiller() {
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(KILLER),
+    private void enableKiller(Alarm alarm) {
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(KILLER, alarm),
                 1000 * ALARM_TIMEOUT_SECONDS);
     }
 
