@@ -19,8 +19,6 @@ package com.android.alarmclock;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -129,7 +127,7 @@ public class SetAlarm extends PreferenceActivity
         // Have the ListView expand to fill the screen minus the save/cancel
         // buttons.
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LayoutParams.FILL_PARENT,
+                LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT);
         lp.weight = 1;
         ll.addView(lv, lp);

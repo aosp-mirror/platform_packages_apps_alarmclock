@@ -16,18 +16,18 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/base_layout"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:gravity="center_vertical"> 
 
     <FrameLayout
         android:id="@+id/clock_layout"
         android:layout_width="208dip"
-        android:layout_height="fill_parent"/>
+        android:layout_height="match_parent"/>
 
     <ListView
         android:id="@+id/alarms_list"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
 </LinearLayout>
