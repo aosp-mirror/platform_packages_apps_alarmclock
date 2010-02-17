@@ -7,4 +7,6 @@ LOCAL_SRC_FILES := $(call all-subdir-java-files)
 
 LOCAL_PACKAGE_NAME := AlarmClock
 
+LOCAL_PROGUARD_ENABLED := full
+
 include $(BUILD_PACKAGE)
