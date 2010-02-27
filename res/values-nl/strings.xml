@@ -85,8 +85,7 @@
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"Alarm is ingesteld voor <xliff:g id="TIME">%s</xliff:g>. Selecteer om te annuleren."</string>
     <string name="volume_button_setting_title" msgid="1892885285888644234">"Gedrag van zijknop"</string>
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"Stel het gewenste gedrag van de zijknoppen in wanneer hierop wordt gedrukt tijdens een alarm"</string>
-    <!-- no translation found for default_ringtone_setting_title (4549726190682964245) -->
-    <skip />
+    <string name="default_ringtone_setting_title" msgid="4549726190682964245">"Standaardbeltoon instellen"</string>
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"Geen"</item>
     <item msgid="7111908302622811168">"Snooze"</item>

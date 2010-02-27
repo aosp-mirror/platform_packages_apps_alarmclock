@@ -85,8 +85,7 @@
     <string name="alarm_notify_snooze_text" msgid="8004830999152609519">"已将此闹钟设置在 <xliff:g id="TIME">%s</xliff:g>启动。选择即可取消。"</string>
     <string name="volume_button_setting_title" msgid="1892885285888644234">"侧边按钮功用"</string>
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"设置侧边按钮在闹钟启动时的功用"</string>
-    <!-- no translation found for default_ringtone_setting_title (4549726190682964245) -->
-    <skip />
+    <string name="default_ringtone_setting_title" msgid="4549726190682964245">"设置默认铃声"</string>
   <string-array name="volume_button_setting_entries">
     <item msgid="4520420953175098625">"无"</item>
     <item msgid="7111908302622811168">"暂停"</item>
