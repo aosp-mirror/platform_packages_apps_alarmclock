@@ -59,7 +59,7 @@
     <string name="settings" msgid="5849739030579520686">"Configurações"</string>
     <string name="alarm_in_silent_mode_title" msgid="3892612644543516705">"Modo silencioso"</string>
     <string name="alarm_in_silent_mode_summary" msgid="6042500263899922832">"Tocar o alarme mesmo quando o telefone estiver no modo silencioso"</string>
-    <string name="snooze_duration_title" msgid="1471249885139952670">"Duração do modo de espera"</string>
+    <string name="snooze_duration_title" msgid="1471249885139952670">"Modo de espera"</string>
   <string-array name="snooze_duration_entries">
     <item msgid="8337408933053603125">"5 minutos"</item>
     <item msgid="5294206441496024610">"10 minutos"</item>
@@ -88,7 +88,7 @@
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"Defina o comportamento desejado dos botões laterais quando pressionados durante um alarme"</string>
     <string name="default_ringtone_setting_title" msgid="4549726190682964245">"Definir toque padrão"</string>
   <string-array name="volume_button_setting_entries">
-    <item msgid="4520420953175098625">"Nenhuma"</item>
+    <item msgid="4520420953175098625">"Nenhum"</item>
     <item msgid="7111908302622811168">"Colocar em modo de espera"</item>
     <item msgid="8573552194573068996">"Descartar"</item>
   </string-array>

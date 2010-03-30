@@ -59,7 +59,7 @@
     <string name="settings" msgid="5849739030579520686">"Ρυθμίσεις"</string>
     <string name="alarm_in_silent_mode_title" msgid="3892612644543516705">"Ξυπνητήρι σε αθόρυβη λειτουργία"</string>
     <string name="alarm_in_silent_mode_summary" msgid="6042500263899922832">"Αναπ/γή ήχου ξυπνητ.ακόμα και όταν το τηλ.βρίσκ.σε αθόρ.λειτ."</string>
-    <string name="snooze_duration_title" msgid="1471249885139952670">"Διάρκεια αφύπνισης"</string>
+    <string name="snooze_duration_title" msgid="1471249885139952670">"Διάρκεια αναβολής αφύπνισης"</string>
   <string-array name="snooze_duration_entries">
     <item msgid="8337408933053603125">"5 λεπτά"</item>
     <item msgid="5294206441496024610">"10 λεπτά"</item>
