@@ -88,7 +88,7 @@
     <string name="volume_button_setting_summary" msgid="1594641247799573198">"Définir les actions des boutons latéraux lors d\'une alarme"</string>
     <string name="default_ringtone_setting_title" msgid="4549726190682964245">"Définir la sonnerie par défaut"</string>
   <string-array name="volume_button_setting_entries">
-    <item msgid="4520420953175098625">"Aucune"</item>
+    <item msgid="4520420953175098625">"Aucun"</item>
     <item msgid="7111908302622811168">"Répéter"</item>
     <item msgid="8573552194573068996">"Désactiver"</item>
   </string-array>
